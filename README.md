@@ -32,7 +32,7 @@ Thank you for using this tool to have your thesis defense announced on the Navie
 
 1. **Open the tool in your browser.** Download the file `annonce-soutenance.html` (“Download raw file” button on GitHub), then double-click it to open it. Note: simply clicking the file on GitHub shows the source code, not the form.
 2. **Fill in the details of your defense accurately** (name, team, date, time, location, jury members with their affiliations and roles).
-3. **Title and abstract**: in French, or in English if not available in French.
+3. **Title and abstract**: in French or in English.
 4. **Defense location**: the announcement is written in French and places the word “dans” (“in”) before the location, so write something that reads naturally after it, e.g. « l'amphithéâtre Cauchy, École nationale des ponts et chaussées » or « la salle B105, bâtiment Bienvenüe ».
 5. **Video conference**: if a video link is planned, create it before filling in the form, then paste it in the dedicated field. It will appear in the announcement as a clickable link (« ce lien »).
 6. **Check the text** displayed on the right: it is exactly what will be published.
