@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur d'annonce de soutenance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F1F2ED;
+    --surface: #FFFFFF;
+    --surface-2: #E9E8E0;
+    --text: #2B2A25;
+    --text-muted: #6B6558;
+    --accent: #9C6B30;
+    --accent-2: #3C5A66;
+    --accent-3: #5C7A52;
+    --border: #D9D6C9;
+    --shadow: rgba(43,42,37,0.08);
+    --danger: #A6432F;
+    --font-ui: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1C1B17;
+      --surface: #242320;
+      --surface-2: #2C2A25;
+      --text: #EDEAE0;
+      --text-muted: #A39C8C;
+      --accent: #D2A466;
+      --accent-2: #7FA8B5;
+      --accent-3: #92AC87;
+      --border: #3A382F;
+      --shadow: rgba(0,0,0,0.35);
+      --danger: #E08669;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1C1B17;
+    --surface: #242320;
+    --surface-2: #2C2A25;
+    --text: #EDEAE0;
+    --text-muted: #A39C8C;
+    --accent: #D2A466;
+    --accent-2: #7FA8B5;
+    --accent-3: #92AC87;
+    --border: #3A382F;
+    --shadow: rgba(0,0,0,0.35);
+    --danger: #E08669;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+  }
+
+  .app {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) 4rem;
+  }
+
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .masthead h1 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    margin: 0 0 0.35rem;
+  }
+
+  .masthead p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.93rem;
+    max-width: 62ch;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) minmax(340px, 1fr);
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .preview-pane { position: static; }
+  }
+
+  section.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .form-pane fieldset {
+    border: none;
+    margin: 0;
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .form-pane fieldset:last-of-type { border-bottom: none; }
+
+  .form-pane legend {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--accent-2);
+    padding: 0 0.15rem 0.6rem;
+  }
+
+  .field { margin-bottom: 0.85rem; }
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .name-gender-row { display: grid; grid-template-columns: 1fr 6rem; gap: 0.5rem; }
+  @media (max-width: 480px) {
+    .name-gender-row { grid-template-columns: 1fr; }
+  }
+
+  input[type="text"], input[type="url"], input[type="date"], input[type="time"], textarea, select {
+    width: 100%;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.55rem 0.65rem;
+  }
+
+  input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 1px;
+  }
+
+  textarea { resize: vertical; min-height: 4.2em; }
+  textarea#abstractInput { min-height: 8em; }
+  textarea#abstractInput::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .jury-member {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem;
+    margin-bottom: 0.6rem;
+    background: var(--surface-2);
+  }
+
+  .jury-row-line1 {
+    display: grid;
+    grid-template-columns: 1fr 4.4rem auto;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+  }
+  .jury-row-line2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  @media (max-width: 480px) {
+    .jury-row-line2 { grid-template-columns: 1fr; }
+  }
+
+  .icon-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 6px;
+    width: 2.2rem;
+    height: 2.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+  }
+  .icon-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+  .ghost-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--accent-2);
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+    cursor: pointer;
+    margin-top: 0.15rem;
+  }
+  .ghost-btn:hover { border-color: var(--accent-2); background: var(--surface-2); }
+
+  .form-footer {
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .text-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 0.3rem;
+  }
+  .text-btn.confirming { color: var(--danger); text-decoration: none; font-weight: 600; }
+
+  .preview-pane { position: sticky; top: 1.25rem; }
+
+  .preview-strip {
+    height: 8px;
+    background: linear-gradient(90deg,
+      var(--accent) 0 22%,
+      var(--accent-2) 22% 48%,
+      var(--surface-2) 48% 63%,
+      var(--accent-3) 63% 85%,
+      var(--accent-2) 85% 100%);
+  }
+
+  .preview-body { padding: 1.6rem clamp(1.1rem, 3vw, 1.9rem) 1.5rem; }
+
+  .preview-kicker {
+    font-size: 0.78rem;
+    color: var(--accent-2);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-sentence {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    line-height: 1.55;
+    margin: 0 0 1.3rem;
+  }
+
+  .placeholder { color: var(--text-muted); font-style: italic; }
+
+  .preview-section-title {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .jury-list { list-style: none; margin: 0 0 1.3rem; padding: 0; }
+  .jury-list li {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+  }
+  .jury-list li:last-child { border-bottom: none; }
+  .jury-list .role { color: var(--text-muted); }
+
+  .abstract-text {
+    font-family: var(--font-serif);
+    font-size: 0.98rem;
+    line-height: 1.65;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .confirm-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    padding: 0.9rem clamp(1.1rem, 3vw, 1.9rem) 0;
+    border-top: 1px solid var(--border);
+  }
+  .confirm-line input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .action-zone {
+    padding: 0.85rem clamp(1.1rem, 3vw, 1.9rem) 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .primary-btn, .secondary-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1.1rem;
+    font-family: var(--font-ui);
+    font-weight: 500;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .primary-btn {
+    background: var(--accent-2);
+    color: var(--surface);
+  }
+  .primary-btn:hover { filter: brightness(1.08); }
+  .primary-btn.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .secondary-btn {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .secondary-btn:hover { border-color: var(--accent-2); }
+
+  .copy-feedback {
+    font-size: 0.85rem;
+    color: var(--accent-3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    width: 100%;
+  }
+  .copy-feedback.show { opacity: 1; }
+
+  .mail-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.5rem clamp(1.1rem, 3vw, 1.9rem) 1.2rem;
+  }
+
+  details.raw-text {
+    margin: 0 clamp(1.1rem, 3vw, 1.9rem) 1.4rem;
+  }
+  details.raw-text summary {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+  }
+  #plainTextArea, #htmlTextArea {
+    width: 100%;
+    min-height: 9em;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="masthead">
+    <h1>Annonce de soutenance</h1>
+    <p>Remplissez les informations à gauche&nbsp;: l'aperçu à droite se met à jour au fur et à mesure. Relisez-le, cochez la confirmation, puis envoyez-le par mail ou copiez le texte.</p>
+  </div>
+
+  <div class="layout">
+
+    <section class="card form-pane">
+      <fieldset>
+        <legend>Informations générales</legend>
+        <div class="field">
+          <label for="studentInput">Nom de l'étudiant·e</label>
+          <div class="name-gender-row">
+            <input type="text" id="studentInput" placeholder="Prénom Nom">
+            <select id="studentGenderInput">
+              <option value="">Genre</option>
+              <option value="m">M.</option>
+              <option value="f">Mme</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="teamInput">Équipe</label>
+          <select id="teamInput">
+            <option value="">Choisir une équipe</option>
+            <option>Géotechnique</option>
+            <option>Matériaux et structures architecturés</option>
+            <option>Multi-échelle</option>
+            <option>Rhéophysique et milieux poreux</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="titleInput">Titre de la thèse</label>
+          <textarea id="titleInput" rows="2" placeholder="Titre complet de la thèse"></textarea>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="dateInput">Date</label>
+            <input type="date" id="dateInput">
+          </div>
+          <div class="field">
+            <label for="timeInput">Heure</label>
+            <input type="time" id="timeInput">
+          </div>
+        </div>
+        <div class="field">
+          <label for="locationInput">Lieu</label>
+          <input type="text" id="locationInput" placeholder="Amphithéâtre, bâtiment, campus…">
+        </div>
+        <div class="field">
+          <label for="visioInput">Lien de visioconférence (optionnel)</label>
+          <input type="url" id="visioInput" placeholder="https://...">
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Jury</legend>
+        <div id="juryRows"></div>
+        <button type="button" class="ghost-btn" id="addJuryBtn">+ Ajouter un membre du jury</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Résumé</legend>
+        <div class="field">
+          <textarea id="abstractInput" placeholder="Vers la fin du dix-septième siècle, Newton publia la découverte de la gravitation universelle. Depuis cette époque, les géomètres sont parvenus à réduire à cette grande loi de la nature tous les phénomènes connus du système du monde, et à donner ainsi, aux théories et aux tables astronomiques, une précision inattendue. Le but de ce Traité est d'offrir un aperçu complet de la mécanique céleste, de réduire toutes les lois géométriques et astronomiques aux lois de la mécanique de Newton, et de prouver que le système solaire est entièrement stable et régulier, ses variations n'étant que périodiques."></textarea>
+        </div>
+      </fieldset>
+
+      <div class="form-footer">
+        <button type="button" class="text-btn" id="resetBtn">Réinitialiser le formulaire</button>
+      </div>
+    </section>
+
+    <section class="card preview-pane">
+      <div class="preview-strip"></div>
+      <div class="preview-body">
+        <div class="preview-kicker">Soutenance de thèse</div>
+        <p class="preview-sentence" id="previewSentence"></p>
+
+        <div class="preview-section-title">Composition du jury</div>
+        <ul class="jury-list" id="previewJury"></ul>
+
+        <div class="preview-section-title">Résumé</div>
+        <p class="abstract-text" id="previewAbstract"></p>
+      </div>
+
+      <label class="confirm-line" for="confirmCheckbox">
+        <input type="checkbox" id="confirmCheckbox">
+        <span>Je confirme que les informations ci-dessus sont correctes et je les envoie pour publication.</span>
+      </label>
+
+      <div class="action-zone">
+        <a href="#" class="primary-btn disabled" id="sendMailBtn" aria-disabled="true">Envoyer par email</a>
+        <button type="button" class="secondary-btn" id="copyBtn">Copier le texte</button>
+        <span class="copy-feedback" id="copyFeedback"></span>
+      </div>
+      <p class="mail-note">Si le message s'ouvre vide ou tronqué (résumé long), copiez le texte ci-dessous et collez-le dans le corps du message.</p>
+
+      <details class="raw-text">
+        <summary>Afficher le texte brut (copie manuelle)</summary>
+        <textarea id="plainTextArea" readonly></textarea>
+      </details>
+
+      <details class="raw-text">
+        <summary>Afficher le code HTML pour le site (à coller dans l'éditeur, onglet « Code »)</summary>
+        <textarea id="htmlTextArea" readonly></textarea>
+        <button type="button" class="secondary-btn" id="copyHtmlBtn" style="margin-top:0.6rem;">Copier le code HTML</button>
+        <span class="copy-feedback" id="htmlCopyFeedback"></span>
+      </details>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const RECIPIENT_EMAIL = "ana.loyola@enpc.fr";
+
+  const ROLE_DEFS = [
+    { key: "directeur",   m: "Directeur de thèse",    f: "Directrice de thèse" },
+    { key: "coencadrant", m: "Co-encadrant de thèse",  f: "Co-encadrante de thèse" },
+    { key: "rapporteur",  m: "Rapporteur",             f: "Rapporteure" },
+    { key: "examinateur", m: "Examinateur",            f: "Examinatrice" },
+    { key: "president",   m: "Président du jury",      f: "Présidente du jury" },
+    { key: "invite",      m: "Invité",                 f: "Invitée" }
+  ];
+
+  const state = {
+    student: '',
+    studentGender: '',
+    team: '',
+    title: '',
+    date: '',
+    time: '',
+    location: '',
+    visioLink: '',
+    abstract: '',
+    jury: [
+      { id: 1, name: '', roleKey: 'directeur', gender: '', affiliation: '' },
+      { id: 2, name: '', roleKey: 'rapporteur', gender: '', affiliation: '' }
+    ]
+  };
+  let nextJuryId = 3;
+
+  const el = (id) => document.getElementById(id);
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function roleDef(key) {
+    return ROLE_DEFS.find(r => r.key === key) || ROLE_DEFS[0];
+  }
+
+  function roleLabel(key, gender) {
+    const def = roleDef(key);
+    if (gender === 'm') return def.m;
+    if (gender === 'f') return def.f;
+    return def.m + ' / ' + def.f;
+  }
+
+  function studentRoleWord(gender) {
+    if (gender === 'm') return 'doctorant';
+    if (gender === 'f') return 'doctorante';
+    return 'doctorant·e';
+  }
+
+  function formatDateFr(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function formatTimeFr(timeStr) {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':');
+    const hi = parseInt(h, 10);
+    return m === '00' ? `${hi}h` : `${hi}h${m}`;
+  }
+
+  function escapeAttr(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  }
+
+  function buildLocationClausePlain() {
+    const hasLoc = !!state.location;
+    const hasVisio = !!state.visioLink;
+    if (hasLoc && hasVisio) return ` dans ${state.location} (également en visioconférence : ${state.visioLink})`;
+    if (hasLoc) return ` dans ${state.location}`;
+    if (hasVisio) return `, en visioconférence (${state.visioLink})`;
+    return '';
+  }
+
+  function buildLocationClauseHtml() {
+    const hasLoc = !!state.location;
+    const hasVisio = !!state.visioLink;
+    const locHtml = hasLoc ? escapeHtml(state.location) : '';
+    const visioAnchor = hasVisio
+      ? `<a href="${escapeAttr(state.visioLink)}" target="_blank" rel="noopener">ce lien</a>`
+      : '';
+    if (hasLoc && hasVisio) return ` dans ${locHtml} (également en visioconférence via ${visioAnchor})`;
+    if (hasLoc) return ` dans ${locHtml}`;
+    if (hasVisio) return `, en visioconférence via ${visioAnchor}`;
+    return '';
+  }
+
+  function renderJuryRows() {
+    const container = el('juryRows');
+    container.innerHTML = '';
+    state.jury.forEach((member) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'jury-member';
+
+      const line1 = document.createElement('div');
+      line1.className = 'jury-row-line1';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.placeholder = 'Nom';
+      nameInput.value = member.name;
+      nameInput.dataset.field = 'name';
+
+      const genderSelect = document.createElement('select');
+      genderSelect.dataset.field = 'gender';
+      [['', 'Genre'], ['m', 'M.'], ['f', 'Mme']].forEach(([val, label]) => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = label;
+        if (val === member.gender) opt.selected = true;
+        genderSelect.appendChild(opt);
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'icon-btn';
+      removeBtn.setAttribute('aria-label', 'Retirer ce membre du jury');
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', () => {
+        state.jury = state.jury.filter(j => j.id !== member.id);
+        renderJuryRows();
+        renderPreview();
+      });
+
+      line1.appendChild(nameInput);
+      line1.appendChild(genderSelect);
+      line1.appendChild(removeBtn);
+
+      const line2 = document.createElement('div');
+      line2.className = 'jury-row-line2';
+
+      const roleSelect = document.createElement('select');
+      roleSelect.dataset.field = 'roleKey';
+      ROLE_DEFS.forEach(def => {
+        const opt = document.createElement('option');
+        opt.value = def.key;
+        opt.textContent = `${def.m} / ${def.f}`;
+        if (def.key === member.roleKey) opt.selected = true;
+        roleSelect.appendChild(opt);
+      });
+
+      const affInput = document.createElement('input');
+      affInput.type = 'text';
+      affInput.placeholder = 'Affiliation';
+      affInput.value = member.affiliation;
+      affInput.dataset.field = 'affiliation';
+
+      line2.appendChild(roleSelect);
+      line2.appendChild(affInput);
+
+      [nameInput, genderSelect, roleSelect, affInput].forEach(input => {
+        const evt = input.tagName === 'SELECT' ? 'change' : 'input';
+        input.addEventListener(evt, () => {
+          member[input.dataset.field] = input.value;
+          renderPreview();
+        });
+      });
+
+      wrap.appendChild(line1);
+      wrap.appendChild(line2);
+      container.appendChild(wrap);
+    });
+  }
+
+  function buildPlainText() {
+    const lines = [];
+    lines.push('SOUTENANCE DE THÈSE');
+    lines.push('');
+
+    const studentName = state.student || "[Nom de l'étudiant·e]";
+    const roleWord = studentRoleWord(state.studentGender);
+    const teamText = state.team || '[équipe]';
+    const title = state.title || '[Titre de la thèse]';
+    const dateStr = state.date ? formatDateFr(state.date) : '[date]';
+    const timeStr = state.time ? ` à ${formatTimeFr(state.time)}` : '';
+    const locationClause = buildLocationClausePlain();
+
+    let sentence = `${studentName}, ${roleWord} au sein de l'équipe ${teamText} du laboratoire Navier, soutiendra sa thèse intitulée « ${title} » le ${dateStr}${timeStr}${locationClause}.`;
+
+    lines.push(sentence);
+    lines.push('');
+
+    lines.push('Composition du jury :');
+    const namedJury = state.jury.filter(j => j.name);
+    if (namedJury.length === 0) {
+      lines.push('(non renseignée)');
+    } else {
+      namedJury.forEach(j => {
+        const aff = j.affiliation ? `, ${j.affiliation}` : '';
+        lines.push(`- ${j.name} (${roleLabel(j.roleKey, j.gender)})${aff}`);
+      });
+    }
+    lines.push('');
+
+    lines.push('Résumé :');
+    lines.push(state.abstract || '[résumé]');
+
+    return lines.join('\n');
+  }
+
+  function buildWordPressHtml() {
+    const studentName = state.student ? escapeHtml(state.student) : "[Nom de l'étudiant·e]";
+    const roleWord = studentRoleWord(state.studentGender);
+    const teamText = state.team ? escapeHtml(state.team) : '[équipe]';
+    const titleEsc = state.title ? escapeHtml(state.title) : '[titre de la thèse]';
+    const dateStr = state.date ? formatDateFr(state.date) : '[date]';
+    const timeStr = state.time ? ` à ${formatTimeFr(state.time)}` : '';
+    const locationClause = buildLocationClauseHtml();
+
+    let sentence = `${studentName}, ${roleWord} au sein de l'équipe ${teamText} du laboratoire Navier, soutiendra sa thèse « <em>${titleEsc}</em> » le ${dateStr}${timeStr}${locationClause}.`;
+
+    const namedJury = state.jury.filter(j => j.name);
+    let juryHtml = '<p style="text-align:justify;"><em>(jury non renseigné)</em></p>';
+    if (namedJury.length) {
+      juryHtml = '<ul style="list-style:none; margin:0; padding:0;">\n' + namedJury.map(j => {
+        const aff = j.affiliation ? `, ${escapeHtml(j.affiliation)}` : '';
+        return `<li style="margin:0 0 0.5em 0;"><span style="color:#E2A034; margin-right:0.5em;">●</span>${escapeHtml(j.name)}${aff}, ${roleLabel(j.roleKey, j.gender)}</li>`;
+      }).join('\n') + '\n</ul>';
+    }
+
+    const abstractHtml = state.abstract
+      ? state.abstract.split(/\n{2,}/).map(p => `<p style="text-align:justify;">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('\n')
+      : '<p style="text-align:justify;">[résumé]</p>';
+
+    return [
+      `<p style="text-align:justify;">${sentence}</p>`,
+      '',
+      '<p style="text-align:justify;">Le jury de thèse est composé des membres suivants :</p>',
+      juryHtml,
+      '',
+      '<style>',
+      '.resume-toggle summary::-webkit-details-marker{display:none;}',
+      '.resume-toggle summary{list-style:none;}',
+      '.resume-toggle .resume-arrow{display:inline-block;transition:transform .15s ease;}',
+      '.resume-toggle[open] .resume-arrow{transform:rotate(90deg);}',
+      '</style>',
+      '<details class="resume-toggle">',
+      '<summary style="cursor:pointer; color:#1e73be; font-weight:600;"><span class="resume-arrow">▸</span> Résumé</summary>',
+      abstractHtml,
+      '</details>'
+    ].join('\n');
+  }
+
+  function renderPreview() {
+    const studentNameHtml = state.student
+      ? escapeHtml(state.student)
+      : '<span class="placeholder">Nom de l\'étudiant·e</span>';
+    const roleWord = studentRoleWord(state.studentGender);
+    const teamHtml = state.team
+      ? escapeHtml(state.team)
+      : '<span class="placeholder">équipe</span>';
+    const titleHtml = state.title
+      ? `<em>${escapeHtml(state.title)}</em>`
+      : '<span class="placeholder">titre de la thèse</span>';
+    const dateHtml = state.date
+      ? formatDateFr(state.date)
+      : '<span class="placeholder">date</span>';
+    const timeStr = state.time ? ` à ${formatTimeFr(state.time)}` : '';
+    const locationClause = buildLocationClauseHtml();
+
+    let sentenceHtml = `${studentNameHtml}, ${roleWord} au sein de l'équipe ${teamHtml} du laboratoire Navier, soutiendra sa thèse intitulée « ${titleHtml} » le ${dateHtml}${timeStr}${locationClause}.`;
+
+    el('previewSentence').innerHTML = sentenceHtml;
+
+    const juryList = el('previewJury');
+    juryList.innerHTML = '';
+    const namedJury = state.jury.filter(j => j.name);
+    if (namedJury.length === 0) {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="placeholder">Aucun membre renseigné pour l\'instant</span>';
+      juryList.appendChild(li);
+    } else {
+      namedJury.forEach(j => {
+        const li = document.createElement('li');
+        const aff = j.affiliation ? `, ${escapeHtml(j.affiliation)}` : '';
+        li.innerHTML = `${escapeHtml(j.name)} <span class="role">(${roleLabel(j.roleKey, j.gender)})</span>${aff}`;
+        juryList.appendChild(li);
+      });
+    }
+
+    el('previewAbstract').innerHTML = state.abstract
+      ? escapeHtml(state.abstract)
+      : '<span class="placeholder">Le résumé apparaîtra ici.</span>';
+
+    el('plainTextArea').value = buildPlainText();
+    el('htmlTextArea').value = buildWordPressHtml();
+
+    const subject = state.student
+      ? `Publication d'annonce de soutenance de thèse - ${state.student}`
+      : "Publication d'annonce de soutenance de thèse";
+    const body = `Bonjour,\n\nVoici les informations pour ma soutenance de thèse, à publier sur le site du laboratoire :\n\n${buildPlainText()}\n\n---\n\nCode HTML prêt à coller sur le site :\n\n>>> COLLER ICI LE CODE HTML (déjà copié dans le presse-papiers : Ctrl+V / Cmd+V) <<<\n\nMerci et cordialement,\n${state.student || ''}`;
+    el('sendMailBtn').href = `mailto:${RECIPIENT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  function bindField(id, key, evt) {
+    el(id).addEventListener(evt || 'input', (e) => {
+      state[key] = e.target.value;
+      renderPreview();
+    });
+  }
+
+  bindField('studentInput', 'student');
+  bindField('studentGenderInput', 'studentGender', 'change');
+  bindField('teamInput', 'team', 'change');
+  bindField('titleInput', 'title');
+  bindField('dateInput', 'date');
+  bindField('timeInput', 'time');
+  bindField('locationInput', 'location');
+  bindField('visioInput', 'visioLink');
+  bindField('abstractInput', 'abstract');
+
+  el('addJuryBtn').addEventListener('click', () => {
+    state.jury.push({ id: nextJuryId++, name: '', roleKey: 'examinateur', gender: '', affiliation: '' });
+    renderJuryRows();
+    renderPreview();
+  });
+
+  function updateSendButtonState() {
+    const checked = el('confirmCheckbox').checked;
+    const btn = el('sendMailBtn');
+    btn.classList.toggle('disabled', !checked);
+    btn.setAttribute('aria-disabled', String(!checked));
+  }
+  el('confirmCheckbox').addEventListener('change', updateSendButtonState);
+  el('sendMailBtn').addEventListener('click', (e) => {
+    if (!el('confirmCheckbox').checked) {
+      e.preventDefault();
+      el('confirmCheckbox').focus();
+      return;
+    }
+    const feedback = el('copyFeedback');
+    try {
+      navigator.clipboard.writeText(buildWordPressHtml());
+      feedback.textContent = 'Code HTML copié : collez-le (Ctrl+V) à l\'endroit indiqué dans le mail.';
+    } catch (err) {
+      feedback.textContent = 'Copie automatique indisponible — utilisez le bouton « Copier le code HTML » ci-dessous.';
+    }
+    feedback.classList.add('show');
+    clearTimeout(window._copyFeedbackTimeout);
+    window._copyFeedbackTimeout = setTimeout(() => feedback.classList.remove('show'), 8000);
+  });
+
+  let resetConfirming = false;
+  let resetTimeout = null;
+  el('resetBtn').addEventListener('click', (e) => {
+    if (!resetConfirming) {
+      resetConfirming = true;
+      e.target.textContent = 'Cliquez à nouveau pour confirmer';
+      e.target.classList.add('confirming');
+      resetTimeout = setTimeout(() => {
+        resetConfirming = false;
+        e.target.textContent = 'Réinitialiser le formulaire';
+        e.target.classList.remove('confirming');
+      }, 3000);
+      return;
+    }
+    clearTimeout(resetTimeout);
+    resetConfirming = false;
+    e.target.textContent = 'Réinitialiser le formulaire';
+    e.target.classList.remove('confirming');
+
+    state.student = '';
+    state.studentGender = '';
+    state.team = '';
+    state.title = '';
+    state.date = '';
+    state.time = '';
+    state.location = '';
+    state.visioLink = '';
+    state.abstract = '';
+    state.jury = [
+      { id: nextJuryId++, name: '', roleKey: 'directeur', gender: '', affiliation: '' },
+      { id: nextJuryId++, name: '', roleKey: 'rapporteur', gender: '', affiliation: '' }
+    ];
+    ['studentInput','studentGenderInput','teamInput','titleInput','dateInput','timeInput','locationInput','visioInput','abstractInput'].forEach(id => {
+      el(id).value = '';
+    });
+    el('confirmCheckbox').checked = false;
+    updateSendButtonState();
+    renderJuryRows();
+    renderPreview();
+  });
+
+  el('copyBtn').addEventListener('click', async () => {
+    const text = buildPlainText();
+    const feedback = el('copyFeedback');
+    try {
+      await navigator.clipboard.writeText(text);
+      feedback.textContent = 'Copié !';
+    } catch (err) {
+      const ta = el('plainTextArea');
+      ta.focus();
+      ta.select();
+      feedback.textContent = 'Copie automatique indisponible — texte sélectionné ci-dessous.';
+    }
+    feedback.classList.add('show');
+    clearTimeout(window._copyFeedbackTimeout);
+    window._copyFeedbackTimeout = setTimeout(() => feedback.classList.remove('show'), 3500);
+  });
+
+  el('copyHtmlBtn').addEventListener('click', async () => {
+    const text = buildWordPressHtml();
+    const feedback = el('htmlCopyFeedback');
+    try {
+      await navigator.clipboard.writeText(text);
+      feedback.textContent = 'Copié !';
+    } catch (err) {
+      const ta = el('htmlTextArea');
+      ta.focus();
+      ta.select();
+      feedback.textContent = 'Copie automatique indisponible — texte sélectionné ci-dessous.';
+    }
+    feedback.classList.add('show');
+    clearTimeout(window._htmlCopyFeedbackTimeout);
+    window._htmlCopyFeedbackTimeout = setTimeout(() => feedback.classList.remove('show'), 3500);
+  });
+
+  renderJuryRows();
+  renderPreview();
+</script>
+</body>
+</html>
