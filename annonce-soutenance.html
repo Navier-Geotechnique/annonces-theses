@@ -371,6 +371,17 @@
     font-family: ui-monospace, 'SF Mono', Consolas, monospace;
     font-size: 0.82rem;
   }
+  .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 1rem; }
+  .lang-toggle button {
+    background: var(--surface); color: var(--text-muted); border: none;
+    padding: 0.35rem 0.9rem; font-family: var(--font-ui); font-size: 0.85rem; cursor: pointer;
+  }
+  .lang-toggle button.active { background: var(--accent-2); color: var(--surface); }
+  .preview-content { font-size: 0.97rem; line-height: 1.6; }
+  .preview-content a { color: var(--accent-2); }
+  .optional-tag { font-weight: 400; color: var(--text-muted); font-size: 0.78rem; }
+  .code-block { margin-bottom: 1rem; }
+  .code-block h4 { font-size: 0.82rem; font-weight: 600; margin: 0.4rem 0; color: var(--text); }
 </style>
 </head>
 <body>
@@ -378,7 +389,7 @@
 
   <div class="masthead">
     <h1>Annonce de soutenance</h1>
-    <p>Remplissez les informations à gauche&nbsp;: l'aperçu à droite se met à jour au fur et à mesure. Relisez-le, cochez la confirmation, puis envoyez-le par mail ou copiez le texte.</p>
+    <p>Remplissez les informations à gauche&nbsp;: l'aperçu à droite (français et anglais) se met à jour au fur et à mesure. Relisez-le, cochez la confirmation, puis envoyez-le par mail.</p>
   </div>
 
   <div class="layout">
@@ -401,15 +412,11 @@
           <label for="teamInput">Équipe</label>
           <select id="teamInput">
             <option value="">Choisir une équipe</option>
-            <option>Géotechnique</option>
-            <option>Matériaux et structures architecturés</option>
-            <option>Multi-échelle</option>
-            <option>Rhéophysique et milieux poreux</option>
+            <option value="geotech">Géotechnique</option>
+            <option value="msa">Matériaux et structures architecturés</option>
+            <option value="multi">Multi-échelle</option>
+            <option value="rmp">Rhéophysique et milieux poreux</option>
           </select>
-        </div>
-        <div class="field">
-          <label for="titleInput">Titre de la thèse</label>
-          <textarea id="titleInput" rows="2" placeholder="Titre complet de la thèse"></textarea>
         </div>
         <div class="row2">
           <div class="field">
@@ -422,12 +429,50 @@
           </div>
         </div>
         <div class="field">
-          <label for="locationInput">Lieu</label>
-          <input type="text" id="locationInput" placeholder="Amphithéâtre, bâtiment, campus…">
+          <label for="defenseLangInput">Langue de la soutenance <span class="optional-tag">(optionnel)</span></label>
+          <select id="defenseLangInput">
+            <option value="">Non précisée</option>
+            <option value="fr">Français</option>
+            <option value="en">Anglais</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Lieu</legend>
+        <div class="row2">
+          <div class="field">
+            <label for="placeTypeInput">Type de lieu</label>
+            <select id="placeTypeInput">
+              <option value="amphi">Amphithéâtre</option>
+              <option value="salle">Salle</option>
+              <option value="auditorium">Auditorium</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="placeNameInput">Nom du lieu</label>
+            <input type="text" id="placeNameInput" placeholder="ex. : Navier, B102">
+          </div>
         </div>
         <div class="field">
-          <label for="visioInput">Lien de visioconférence (optionnel)</label>
+          <label for="buildingInput">Bâtiment / établissement</label>
+          <input type="text" id="buildingInput" placeholder="ex. : École nationale des ponts et chaussées">
+        </div>
+        <div class="field">
+          <label for="visioInput">Lien de visioconférence <span class="optional-tag">(optionnel)</span></label>
           <input type="url" id="visioInput" placeholder="https://...">
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Titre de la thèse</legend>
+        <div class="field">
+          <label for="titleInput">Titre en français</label>
+          <textarea id="titleInput" rows="2" placeholder="Titre complet de la thèse"></textarea>
+        </div>
+        <div class="field">
+          <label for="titleEnInput">Titre en anglais <span class="optional-tag">(si disponible)</span></label>
+          <textarea id="titleEnInput" rows="2" placeholder="Full thesis title in English"></textarea>
         </div>
       </fieldset>
 
@@ -440,7 +485,12 @@
       <fieldset>
         <legend>Résumé</legend>
         <div class="field">
+          <label for="abstractInput">Résumé en français</label>
           <textarea id="abstractInput" placeholder="Vers la fin du dix-septième siècle, Newton publia la découverte de la gravitation universelle. Depuis cette époque, les géomètres sont parvenus à réduire à cette grande loi de la nature tous les phénomènes connus du système du monde, et à donner ainsi, aux théories et aux tables astronomiques, une précision inattendue. Le but de ce Traité est d'offrir un aperçu complet de la mécanique céleste, de réduire toutes les lois géométriques et astronomiques aux lois de la mécanique de Newton, et de prouver que le système solaire est entièrement stable et régulier, ses variations n'étant que périodiques."></textarea>
+        </div>
+        <div class="field">
+          <label for="abstractEnInput">Résumé en anglais <span class="optional-tag">(si disponible)</span></label>
+          <textarea id="abstractEnInput" rows="5" placeholder="Abstract in English"></textarea>
         </div>
       </fieldset>
 
@@ -452,38 +502,37 @@
     <section class="card preview-pane">
       <div class="preview-strip"></div>
       <div class="preview-body">
-        <div class="preview-kicker">Soutenance de thèse</div>
-        <p class="preview-sentence" id="previewSentence"></p>
-
-        <div class="preview-section-title">Composition du jury</div>
-        <ul class="jury-list" id="previewJury"></ul>
-
-        <div class="preview-section-title">Résumé</div>
-        <p class="abstract-text" id="previewAbstract"></p>
+        <div class="lang-toggle" role="tablist">
+          <button type="button" id="langFrBtn" class="active">Aperçu FR</button>
+          <button type="button" id="langEnBtn">Preview EN</button>
+        </div>
+        <div class="preview-content" id="previewContent"></div>
       </div>
 
       <label class="confirm-line" for="confirmCheckbox">
         <input type="checkbox" id="confirmCheckbox">
-        <span>Je confirme que les informations ci-dessus sont correctes et je les envoie pour publication.</span>
+        <span>Je confirme que les informations ci-dessus (versions française et anglaise) sont correctes et je les envoie pour publication.</span>
       </label>
 
       <div class="action-zone">
         <a href="#" class="primary-btn disabled" id="sendMailBtn" aria-disabled="true">Envoyer par email</a>
-        <button type="button" class="secondary-btn" id="copyBtn">Copier le texte</button>
         <span class="copy-feedback" id="copyFeedback"></span>
       </div>
-      <p class="mail-note">Si le message s'ouvre vide ou tronqué (résumé long), copiez le texte ci-dessous et collez-le dans le corps du message.</p>
+      <p class="mail-note">En cliquant, les codes HTML (FR et EN) sont copiés automatiquement&nbsp;: collez-les (Ctrl+V / Cmd+V) à l'endroit indiqué dans le mail. Si votre application mail ne s'ouvre pas, copiez les codes ci-dessous et envoyez-les à ana.loyola@enpc.fr.</p>
 
       <details class="raw-text">
-        <summary>Afficher le texte brut (copie manuelle)</summary>
-        <textarea id="plainTextArea" readonly></textarea>
-      </details>
-
-      <details class="raw-text">
-        <summary>Afficher le code HTML pour le site (à coller dans l'éditeur, onglet « Code »)</summary>
-        <textarea id="htmlTextArea" readonly></textarea>
-        <button type="button" class="secondary-btn" id="copyHtmlBtn" style="margin-top:0.6rem;">Copier le code HTML</button>
-        <span class="copy-feedback" id="htmlCopyFeedback"></span>
+        <summary>Afficher les codes HTML pour le site</summary>
+        <div class="code-block">
+          <h4>Version française</h4>
+          <textarea id="htmlFrArea" readonly></textarea>
+          <button type="button" class="secondary-btn" id="copyFrBtn" style="margin-top:0.4rem;">Copier le code FR</button>
+        </div>
+        <div class="code-block">
+          <h4>English version</h4>
+          <textarea id="htmlEnArea" readonly></textarea>
+          <button type="button" class="secondary-btn" id="copyEnBtn" style="margin-top:0.4rem;">Copier le code EN</button>
+        </div>
+        <span class="copy-feedback" id="codeCopyFeedback"></span>
       </details>
     </section>
 
@@ -493,44 +542,59 @@
 <script>
   const RECIPIENT_EMAIL = "ana.loyola@enpc.fr";
 
+  const TEAMS = {
+    geotech: { fr: "Géotechnique", en: "Geotechnics" },
+    msa:     { fr: "Matériaux et structures architecturés", en: "Architectured Materials and Structures" },
+    multi:   { fr: "Multi-échelle", en: "Multi-scale" },
+    rmp:     { fr: "Rhéophysique et milieux poreux", en: "Rheophysics and Porous Media" }
+  };
+
+  const PLACE_TYPES = {
+    amphi:      { fr: "l'amphithéâtre", en: "Amphitheatre" },
+    salle:      { fr: "la salle",       en: "Room" },
+    auditorium: { fr: "l'auditorium",   en: "Auditorium" }
+  };
+
   const ROLE_DEFS = [
-    { key: "directeur",   m: "Directeur de thèse",    f: "Directrice de thèse" },
-    { key: "coencadrant", m: "Co-encadrant de thèse",  f: "Co-encadrante de thèse" },
-    { key: "rapporteur",  m: "Rapporteur",             f: "Rapporteure" },
-    { key: "examinateur", m: "Examinateur",            f: "Examinatrice" },
-    { key: "president",   m: "Président du jury",      f: "Présidente du jury" },
-    { key: "invite",      m: "Invité",                 f: "Invitée" }
+    { key: "directeur",   m: "Directeur de thèse",    f: "Directrice de thèse",    en: "Thesis supervisor" },
+    { key: "coencadrant", m: "Co-encadrant de thèse", f: "Co-encadrante de thèse", en: "Thesis co-supervisor" },
+    { key: "rapporteur",  m: "Rapporteur",            f: "Rapporteure",            en: "Reviewer" },
+    { key: "examinateur", m: "Examinateur",           f: "Examinatrice",           en: "Examiner" },
+    { key: "president",   m: "Président du jury",     f: "Présidente du jury",     en: "President of the jury" },
+    { key: "invite",      m: "Invité",                f: "Invitée",                en: "Invited member" }
   ];
 
+  function freshJury() {
+    return [
+      { id: nextJuryId++, name: '', roleKey: 'directeur', gender: '', affiliation: '' },
+      { id: nextJuryId++, name: '', roleKey: 'rapporteur', gender: '', affiliation: '' }
+    ];
+  }
+
+  let nextJuryId = 1;
   const state = {
-    student: '',
-    studentGender: '',
-    team: '',
-    title: '',
-    date: '',
-    time: '',
-    location: '',
-    visioLink: '',
-    abstract: '',
-    jury: [
-      { id: 1, name: '', roleKey: 'directeur', gender: '', affiliation: '' },
-      { id: 2, name: '', roleKey: 'rapporteur', gender: '', affiliation: '' }
-    ]
+    student: '', studentGender: '', team: '', date: '', time: '',
+    defenseLang: '', placeType: 'amphi', placeName: '', building: '', visioLink: '',
+    title: '', titleEn: '', abstract: '', abstractEn: '',
+    jury: []
   };
-  let nextJuryId = 3;
+  state.jury = freshJury();
+  let previewLang = 'fr';
 
   const el = (id) => document.getElementById(id);
 
   function escapeHtml(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
-
-  function roleDef(key) {
-    return ROLE_DEFS.find(r => r.key === key) || ROLE_DEFS[0];
+  function escapeAttr(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
   }
 
-  function roleLabel(key, gender) {
+  function roleDef(key) { return ROLE_DEFS.find(r => r.key === key) || ROLE_DEFS[0]; }
+
+  function roleLabel(key, gender, lang) {
     const def = roleDef(key);
+    if (lang === 'en') return def.en;
     if (gender === 'm') return def.m;
     if (gender === 'f') return def.f;
     return def.m + ' / ' + def.f;
@@ -542,44 +606,115 @@
     return 'doctorant·e';
   }
 
-  function formatDateFr(dateStr) {
+  function possessiveEn(gender) {
+    if (gender === 'm') return 'his';
+    if (gender === 'f') return 'her';
+    return 'their';
+  }
+
+  function formatDate(dateStr, lang) {
     if (!dateStr) return '';
     const [y, m, d] = dateStr.split('-').map(Number);
     const date = new Date(y, m - 1, d);
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    return date.toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  function formatTimeFr(timeStr) {
+  function formatTime(timeStr, lang) {
     if (!timeStr) return '';
     const [h, m] = timeStr.split(':');
     const hi = parseInt(h, 10);
+    if (lang === 'en') {
+      const suffix = hi >= 12 ? 'pm' : 'am';
+      const h12 = hi % 12 === 0 ? 12 : hi % 12;
+      return m === '00' ? `${h12} ${suffix}` : `${h12}:${m} ${suffix}`;
+    }
     return m === '00' ? `${hi}h` : `${hi}h${m}`;
   }
 
-  function escapeAttr(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-  }
-
-  function buildLocationClausePlain() {
-    const hasLoc = !!state.location;
+  function locationClause(lang) {
+    const hasPlace = !!state.placeName;
     const hasVisio = !!state.visioLink;
-    if (hasLoc && hasVisio) return ` dans ${state.location} (également en visioconférence : ${state.visioLink})`;
-    if (hasLoc) return ` dans ${state.location}`;
-    if (hasVisio) return `, en visioconférence (${state.visioLink})`;
-    return '';
-  }
-
-  function buildLocationClauseHtml() {
-    const hasLoc = !!state.location;
-    const hasVisio = !!state.visioLink;
-    const locHtml = hasLoc ? escapeHtml(state.location) : '';
-    const visioAnchor = hasVisio
-      ? `<a href="${escapeAttr(state.visioLink)}" target="_blank" rel="noopener">ce lien</a>`
+    const type = PLACE_TYPES[state.placeType] || PLACE_TYPES.amphi;
+    const building = state.building ? `, ${escapeHtml(state.building)}` : '';
+    const link = hasVisio
+      ? `<a href="${escapeAttr(state.visioLink)}" target="_blank" rel="noopener">${lang === 'en' ? 'this link' : 'ce lien'}</a>`
       : '';
-    if (hasLoc && hasVisio) return ` dans ${locHtml} (également en visioconférence via ${visioAnchor})`;
-    if (hasLoc) return ` dans ${locHtml}`;
-    if (hasVisio) return `, en visioconférence via ${visioAnchor}`;
+
+    if (lang === 'en') {
+      const place = hasPlace ? ` in ${type.en} ${escapeHtml(state.placeName)}${building}` : '';
+      if (hasPlace && hasVisio) return `${place} (also available by video conference via ${link})`;
+      if (hasPlace) return place;
+      if (hasVisio) return `, by video conference via ${link}`;
+      return '';
+    }
+    const place = hasPlace ? ` dans ${type.fr} ${escapeHtml(state.placeName)}${building}` : '';
+    if (hasPlace && hasVisio) return `${place} (également en visioconférence via ${link})`;
+    if (hasPlace) return place;
+    if (hasVisio) return `, en visioconférence via ${link}`;
     return '';
+  }
+
+  function paragraphs(text) {
+    return text.split(/\n{2,}/)
+      .map(p => `<p style="text-align:justify;">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+      .join('\n');
+  }
+
+  function buildHtml(lang) {
+    const en = lang === 'en';
+    const name = state.student ? escapeHtml(state.student) : (en ? '[Student name]' : "[Nom de l'étudiant·e]");
+    const team = state.team ? TEAMS[state.team][lang] : (en ? '[team]' : '[équipe]');
+    const titleRaw = en ? (state.titleEn || state.title) : state.title;
+    const title = titleRaw ? escapeHtml(titleRaw) : (en ? '[thesis title]' : '[titre de la thèse]');
+    const date = state.date ? formatDate(state.date, lang) : '[date]';
+    const time = state.time ? (en ? ` at ${formatTime(state.time, lang)}` : ` à ${formatTime(state.time, lang)}`) : '';
+    const loc = locationClause(lang);
+
+    const sentence = en
+      ? `${name}, PhD student in the ${team} team of the Navier laboratory, will defend ${possessiveEn(state.studentGender)} thesis “<em>${title}</em>” on ${date}${time}${loc}.`
+      : `${name}, ${studentRoleWord(state.studentGender)} au sein de l'équipe ${team} du laboratoire Navier, soutiendra sa thèse « <em>${title}</em> » le ${date}${time}${loc}.`;
+
+    const LANG_SENTENCE = {
+      fr: { fr: ' La soutenance se tiendra en français.', en: ' La soutenance se tiendra en anglais.' },
+      en: { fr: ' The defense will be held in French.',   en: ' The defense will be held in English.' }
+    };
+    const langSentence = state.defenseLang ? LANG_SENTENCE[lang][state.defenseLang] : '';
+
+    const namedJury = state.jury.filter(j => j.name);
+    let juryHtml = `<p style="text-align:justify;"><em>${en ? '(jury not provided)' : '(jury non renseigné)'}</em></p>`;
+    if (namedJury.length) {
+      juryHtml = '<ul style="list-style:none; margin:0; padding:0;">\n' + namedJury.map(j => {
+        const aff = j.affiliation ? `, ${escapeHtml(j.affiliation)}` : '';
+        return `<li style="margin:0 0 0.5em 0;"><span style="color:#E2A034; margin-right:0.5em;">●</span>${escapeHtml(j.name)}${aff}, ${roleLabel(j.roleKey, j.gender, lang)}</li>`;
+      }).join('\n') + '\n</ul>';
+    }
+
+    const abstractRaw = en ? (state.abstractEn || state.abstract) : state.abstract;
+    const abstractHtml = abstractRaw
+      ? paragraphs(abstractRaw)
+      : `<p style="text-align:justify;">${en ? '[abstract]' : '[résumé]'}</p>`;
+
+    return [
+      `<p style="text-align:justify;">${sentence}${langSentence}</p>`,
+      '',
+      `<p style="text-align:justify;">${en ? 'The thesis jury consists of the following members:' : 'Le jury de thèse est composé des membres suivants :'}</p>`,
+      juryHtml,
+      '',
+      '<style>',
+      '.resume-toggle summary::-webkit-details-marker{display:none;}',
+      '.resume-toggle summary{list-style:none;}',
+      '.resume-toggle .resume-arrow{display:inline-block;transition:transform .15s ease;}',
+      '.resume-toggle[open] .resume-arrow{transform:rotate(90deg);}',
+      '</style>',
+      '<details class="resume-toggle">',
+      `<summary style="cursor:pointer; color:#1e73be; font-weight:600;"><span class="resume-arrow">▸</span> ${en ? 'Abstract' : 'Résumé'}</summary>`,
+      abstractHtml,
+      '</details>'
+    ].join('\n');
+  }
+
+  function buildCombinedCode() {
+    return `===== VERSION FRANÇAISE =====\n\n${buildHtml('fr')}\n\n===== ENGLISH VERSION =====\n\n${buildHtml('en')}`;
   }
 
   function renderJuryRows() {
@@ -616,12 +751,10 @@
       removeBtn.addEventListener('click', () => {
         state.jury = state.jury.filter(j => j.id !== member.id);
         renderJuryRows();
-        renderPreview();
+        renderAll();
       });
 
-      line1.appendChild(nameInput);
-      line1.appendChild(genderSelect);
-      line1.appendChild(removeBtn);
+      line1.append(nameInput, genderSelect, removeBtn);
 
       const line2 = document.createElement('div');
       line2.className = 'jury-row-line2';
@@ -642,174 +775,58 @@
       affInput.value = member.affiliation;
       affInput.dataset.field = 'affiliation';
 
-      line2.appendChild(roleSelect);
-      line2.appendChild(affInput);
+      line2.append(roleSelect, affInput);
 
       [nameInput, genderSelect, roleSelect, affInput].forEach(input => {
         const evt = input.tagName === 'SELECT' ? 'change' : 'input';
         input.addEventListener(evt, () => {
           member[input.dataset.field] = input.value;
-          renderPreview();
+          renderAll();
         });
       });
 
-      wrap.appendChild(line1);
-      wrap.appendChild(line2);
+      wrap.append(line1, line2);
       container.appendChild(wrap);
     });
   }
 
-  function buildPlainText() {
-    const lines = [];
-    lines.push('SOUTENANCE DE THÈSE');
-    lines.push('');
-
-    const studentName = state.student || "[Nom de l'étudiant·e]";
-    const roleWord = studentRoleWord(state.studentGender);
-    const teamText = state.team || '[équipe]';
-    const title = state.title || '[Titre de la thèse]';
-    const dateStr = state.date ? formatDateFr(state.date) : '[date]';
-    const timeStr = state.time ? ` à ${formatTimeFr(state.time)}` : '';
-    const locationClause = buildLocationClausePlain();
-
-    let sentence = `${studentName}, ${roleWord} au sein de l'équipe ${teamText} du laboratoire Navier, soutiendra sa thèse intitulée « ${title} » le ${dateStr}${timeStr}${locationClause}.`;
-
-    lines.push(sentence);
-    lines.push('');
-
-    lines.push('Composition du jury :');
-    const namedJury = state.jury.filter(j => j.name);
-    if (namedJury.length === 0) {
-      lines.push('(non renseignée)');
-    } else {
-      namedJury.forEach(j => {
-        const aff = j.affiliation ? `, ${j.affiliation}` : '';
-        lines.push(`- ${j.name} (${roleLabel(j.roleKey, j.gender)})${aff}`);
-      });
-    }
-    lines.push('');
-
-    lines.push('Résumé :');
-    lines.push(state.abstract || '[résumé]');
-
-    return lines.join('\n');
-  }
-
-  function buildWordPressHtml() {
-    const studentName = state.student ? escapeHtml(state.student) : "[Nom de l'étudiant·e]";
-    const roleWord = studentRoleWord(state.studentGender);
-    const teamText = state.team ? escapeHtml(state.team) : '[équipe]';
-    const titleEsc = state.title ? escapeHtml(state.title) : '[titre de la thèse]';
-    const dateStr = state.date ? formatDateFr(state.date) : '[date]';
-    const timeStr = state.time ? ` à ${formatTimeFr(state.time)}` : '';
-    const locationClause = buildLocationClauseHtml();
-
-    let sentence = `${studentName}, ${roleWord} au sein de l'équipe ${teamText} du laboratoire Navier, soutiendra sa thèse « <em>${titleEsc}</em> » le ${dateStr}${timeStr}${locationClause}.`;
-
-    const namedJury = state.jury.filter(j => j.name);
-    let juryHtml = '<p style="text-align:justify;"><em>(jury non renseigné)</em></p>';
-    if (namedJury.length) {
-      juryHtml = '<ul style="list-style:none; margin:0; padding:0;">\n' + namedJury.map(j => {
-        const aff = j.affiliation ? `, ${escapeHtml(j.affiliation)}` : '';
-        return `<li style="margin:0 0 0.5em 0;"><span style="color:#E2A034; margin-right:0.5em;">●</span>${escapeHtml(j.name)}${aff}, ${roleLabel(j.roleKey, j.gender)}</li>`;
-      }).join('\n') + '\n</ul>';
-    }
-
-    const abstractHtml = state.abstract
-      ? state.abstract.split(/\n{2,}/).map(p => `<p style="text-align:justify;">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('\n')
-      : '<p style="text-align:justify;">[résumé]</p>';
-
-    return [
-      `<p style="text-align:justify;">${sentence}</p>`,
-      '',
-      '<p style="text-align:justify;">Le jury de thèse est composé des membres suivants :</p>',
-      juryHtml,
-      '',
-      '<style>',
-      '.resume-toggle summary::-webkit-details-marker{display:none;}',
-      '.resume-toggle summary{list-style:none;}',
-      '.resume-toggle .resume-arrow{display:inline-block;transition:transform .15s ease;}',
-      '.resume-toggle[open] .resume-arrow{transform:rotate(90deg);}',
-      '</style>',
-      '<details class="resume-toggle">',
-      '<summary style="cursor:pointer; color:#1e73be; font-weight:600;"><span class="resume-arrow">▸</span> Résumé</summary>',
-      abstractHtml,
-      '</details>'
-    ].join('\n');
-  }
-
-  function renderPreview() {
-    const studentNameHtml = state.student
-      ? escapeHtml(state.student)
-      : '<span class="placeholder">Nom de l\'étudiant·e</span>';
-    const roleWord = studentRoleWord(state.studentGender);
-    const teamHtml = state.team
-      ? escapeHtml(state.team)
-      : '<span class="placeholder">équipe</span>';
-    const titleHtml = state.title
-      ? `<em>${escapeHtml(state.title)}</em>`
-      : '<span class="placeholder">titre de la thèse</span>';
-    const dateHtml = state.date
-      ? formatDateFr(state.date)
-      : '<span class="placeholder">date</span>';
-    const timeStr = state.time ? ` à ${formatTimeFr(state.time)}` : '';
-    const locationClause = buildLocationClauseHtml();
-
-    let sentenceHtml = `${studentNameHtml}, ${roleWord} au sein de l'équipe ${teamHtml} du laboratoire Navier, soutiendra sa thèse intitulée « ${titleHtml} » le ${dateHtml}${timeStr}${locationClause}.`;
-
-    el('previewSentence').innerHTML = sentenceHtml;
-
-    const juryList = el('previewJury');
-    juryList.innerHTML = '';
-    const namedJury = state.jury.filter(j => j.name);
-    if (namedJury.length === 0) {
-      const li = document.createElement('li');
-      li.innerHTML = '<span class="placeholder">Aucun membre renseigné pour l\'instant</span>';
-      juryList.appendChild(li);
-    } else {
-      namedJury.forEach(j => {
-        const li = document.createElement('li');
-        const aff = j.affiliation ? `, ${escapeHtml(j.affiliation)}` : '';
-        li.innerHTML = `${escapeHtml(j.name)} <span class="role">(${roleLabel(j.roleKey, j.gender)})</span>${aff}`;
-        juryList.appendChild(li);
-      });
-    }
-
-    el('previewAbstract').innerHTML = state.abstract
-      ? escapeHtml(state.abstract)
-      : '<span class="placeholder">Le résumé apparaîtra ici.</span>';
-
-    el('plainTextArea').value = buildPlainText();
-    el('htmlTextArea').value = buildWordPressHtml();
+  function renderAll() {
+    el('previewContent').innerHTML = buildHtml(previewLang);
+    el('htmlFrArea').value = buildHtml('fr');
+    el('htmlEnArea').value = buildHtml('en');
 
     const subject = state.student
       ? `Publication d'annonce de soutenance de thèse - ${state.student}`
       : "Publication d'annonce de soutenance de thèse";
-    const body = `Bonjour,\n\nVoici les informations pour ma soutenance de thèse, à publier sur le site du laboratoire :\n\n${buildPlainText()}\n\n---\n\nCode HTML prêt à coller sur le site :\n\n>>> COLLER ICI LE CODE HTML (déjà copié dans le presse-papiers : Ctrl+V / Cmd+V) <<<\n\nMerci et cordialement,\n${state.student || ''}`;
+    const body = `Bonjour,\n\nVoici les codes HTML (français et anglais) de l'annonce de ma soutenance de thèse, à publier sur le site du laboratoire :\n\n>>> COLLER ICI LES CODES HTML (déjà copiés dans le presse-papiers : Ctrl+V / Cmd+V) <<<\n\nMerci et cordialement,\n${state.student || ''}`;
     el('sendMailBtn').href = `mailto:${RECIPIENT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  function bindField(id, key, evt) {
-    el(id).addEventListener(evt || 'input', (e) => {
-      state[key] = e.target.value;
-      renderPreview();
-    });
-  }
+  const FIELD_MAP = {
+    studentInput: 'student', studentGenderInput: 'studentGender', teamInput: 'team',
+    dateInput: 'date', timeInput: 'time', defenseLangInput: 'defenseLang',
+    placeTypeInput: 'placeType', placeNameInput: 'placeName', buildingInput: 'building', visioInput: 'visioLink',
+    titleInput: 'title', titleEnInput: 'titleEn', abstractInput: 'abstract', abstractEnInput: 'abstractEn'
+  };
+  Object.entries(FIELD_MAP).forEach(([id, key]) => {
+    const node = el(id);
+    const evt = node.tagName === 'SELECT' ? 'change' : 'input';
+    node.addEventListener(evt, (e) => { state[key] = e.target.value; renderAll(); });
+  });
 
-  bindField('studentInput', 'student');
-  bindField('studentGenderInput', 'studentGender', 'change');
-  bindField('teamInput', 'team', 'change');
-  bindField('titleInput', 'title');
-  bindField('dateInput', 'date');
-  bindField('timeInput', 'time');
-  bindField('locationInput', 'location');
-  bindField('visioInput', 'visioLink');
-  bindField('abstractInput', 'abstract');
+  function setPreviewLang(lang) {
+    previewLang = lang;
+    el('langFrBtn').classList.toggle('active', lang === 'fr');
+    el('langEnBtn').classList.toggle('active', lang === 'en');
+    renderAll();
+  }
+  el('langFrBtn').addEventListener('click', () => setPreviewLang('fr'));
+  el('langEnBtn').addEventListener('click', () => setPreviewLang('en'));
 
   el('addJuryBtn').addEventListener('click', () => {
     state.jury.push({ id: nextJuryId++, name: '', roleKey: 'examinateur', gender: '', affiliation: '' });
     renderJuryRows();
-    renderPreview();
+    renderAll();
   });
 
   function updateSendButtonState() {
@@ -819,101 +836,75 @@
     btn.setAttribute('aria-disabled', String(!checked));
   }
   el('confirmCheckbox').addEventListener('change', updateSendButtonState);
+
+  function showFeedback(id, msg, ms) {
+    const fb = el(id);
+    fb.textContent = msg;
+    fb.classList.add('show');
+    clearTimeout(fb._t);
+    fb._t = setTimeout(() => fb.classList.remove('show'), ms || 3500);
+  }
+
+  async function copyText(text, fallbackAreaId, feedbackId, okMsg) {
+    try {
+      await navigator.clipboard.writeText(text);
+      showFeedback(feedbackId, okMsg);
+    } catch (err) {
+      const ta = el(fallbackAreaId);
+      ta.focus();
+      ta.select();
+      showFeedback(feedbackId, 'Copie automatique indisponible — texte sélectionné, utilisez Ctrl+C / Cmd+C.', 6000);
+    }
+  }
+
   el('sendMailBtn').addEventListener('click', (e) => {
     if (!el('confirmCheckbox').checked) {
       e.preventDefault();
       el('confirmCheckbox').focus();
       return;
     }
-    const feedback = el('copyFeedback');
-    try {
-      navigator.clipboard.writeText(buildWordPressHtml());
-      feedback.textContent = 'Code HTML copié : collez-le (Ctrl+V) à l\'endroit indiqué dans le mail.';
-    } catch (err) {
-      feedback.textContent = 'Copie automatique indisponible — utilisez le bouton « Copier le code HTML » ci-dessous.';
-    }
-    feedback.classList.add('show');
-    clearTimeout(window._copyFeedbackTimeout);
-    window._copyFeedbackTimeout = setTimeout(() => feedback.classList.remove('show'), 8000);
+    navigator.clipboard.writeText(buildCombinedCode()).then(
+      () => showFeedback('copyFeedback', 'Codes HTML (FR et EN) copiés : collez-les (Ctrl+V) à l\'endroit indiqué dans le mail.', 8000),
+      () => showFeedback('copyFeedback', 'Copie automatique indisponible — ouvrez « Afficher les codes HTML » et copiez-les manuellement.', 8000)
+    );
   });
+
+  el('copyFrBtn').addEventListener('click', () => copyText(buildHtml('fr'), 'htmlFrArea', 'codeCopyFeedback', 'Code FR copié !'));
+  el('copyEnBtn').addEventListener('click', () => copyText(buildHtml('en'), 'htmlEnArea', 'codeCopyFeedback', 'Code EN copié !'));
 
   let resetConfirming = false;
   let resetTimeout = null;
   el('resetBtn').addEventListener('click', (e) => {
+    const btn = e.target;
     if (!resetConfirming) {
       resetConfirming = true;
-      e.target.textContent = 'Cliquez à nouveau pour confirmer';
-      e.target.classList.add('confirming');
+      btn.textContent = 'Cliquez à nouveau pour confirmer';
+      btn.classList.add('confirming');
       resetTimeout = setTimeout(() => {
         resetConfirming = false;
-        e.target.textContent = 'Réinitialiser le formulaire';
-        e.target.classList.remove('confirming');
+        btn.textContent = 'Réinitialiser le formulaire';
+        btn.classList.remove('confirming');
       }, 3000);
       return;
     }
     clearTimeout(resetTimeout);
     resetConfirming = false;
-    e.target.textContent = 'Réinitialiser le formulaire';
-    e.target.classList.remove('confirming');
+    btn.textContent = 'Réinitialiser le formulaire';
+    btn.classList.remove('confirming');
 
-    state.student = '';
-    state.studentGender = '';
-    state.team = '';
-    state.title = '';
-    state.date = '';
-    state.time = '';
-    state.location = '';
-    state.visioLink = '';
-    state.abstract = '';
-    state.jury = [
-      { id: nextJuryId++, name: '', roleKey: 'directeur', gender: '', affiliation: '' },
-      { id: nextJuryId++, name: '', roleKey: 'rapporteur', gender: '', affiliation: '' }
-    ];
-    ['studentInput','studentGenderInput','teamInput','titleInput','dateInput','timeInput','locationInput','visioInput','abstractInput'].forEach(id => {
-      el(id).value = '';
+    Object.entries(FIELD_MAP).forEach(([id, key]) => {
+      state[key] = key === 'placeType' ? 'amphi' : '';
+      el(id).value = state[key];
     });
+    state.jury = freshJury();
     el('confirmCheckbox').checked = false;
     updateSendButtonState();
     renderJuryRows();
-    renderPreview();
-  });
-
-  el('copyBtn').addEventListener('click', async () => {
-    const text = buildPlainText();
-    const feedback = el('copyFeedback');
-    try {
-      await navigator.clipboard.writeText(text);
-      feedback.textContent = 'Copié !';
-    } catch (err) {
-      const ta = el('plainTextArea');
-      ta.focus();
-      ta.select();
-      feedback.textContent = 'Copie automatique indisponible — texte sélectionné ci-dessous.';
-    }
-    feedback.classList.add('show');
-    clearTimeout(window._copyFeedbackTimeout);
-    window._copyFeedbackTimeout = setTimeout(() => feedback.classList.remove('show'), 3500);
-  });
-
-  el('copyHtmlBtn').addEventListener('click', async () => {
-    const text = buildWordPressHtml();
-    const feedback = el('htmlCopyFeedback');
-    try {
-      await navigator.clipboard.writeText(text);
-      feedback.textContent = 'Copié !';
-    } catch (err) {
-      const ta = el('htmlTextArea');
-      ta.focus();
-      ta.select();
-      feedback.textContent = 'Copie automatique indisponible — texte sélectionné ci-dessous.';
-    }
-    feedback.classList.add('show');
-    clearTimeout(window._htmlCopyFeedbackTimeout);
-    window._htmlCopyFeedbackTimeout = setTimeout(() => feedback.classList.remove('show'), 3500);
+    renderAll();
   });
 
   renderJuryRows();
-  renderPreview();
+  renderAll();
 </script>
 </body>
 </html>
