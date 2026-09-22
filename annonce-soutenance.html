@@ -642,9 +642,9 @@
 
     if (lang === 'en') {
       const place = hasPlace ? ` in ${type.en} ${escapeHtml(state.placeName)}${building}` : '';
-      if (hasPlace && hasVisio) return `${place} (also available by video conference via ${link})`;
+      if (hasPlace && hasVisio) return `${place} (also available online via ${link})`;
       if (hasPlace) return place;
-      if (hasVisio) return `, by video conference via ${link}`;
+      if (hasVisio) return `, online via ${link}`;
       return '';
     }
     const place = hasPlace ? ` dans ${type.fr} ${escapeHtml(state.placeName)}${building}` : '';
