@@ -418,6 +418,16 @@
             <option value="rmp">Rhéophysique et milieux poreux</option>
           </select>
         </div>
+        <div class="field">
+          <label for="team2Input">Seconde équipe <span class="optional-tag">(optionnel)</span></label>
+          <select id="team2Input">
+            <option value="">Aucune</option>
+            <option value="geotech">Géotechnique</option>
+            <option value="msa">Matériaux et structures architecturés</option>
+            <option value="multi">Multi-échelle</option>
+            <option value="rmp">Rhéophysique et milieux poreux</option>
+          </select>
+        </div>
         <div class="row2">
           <div class="field">
             <label for="dateInput">Date</label>
@@ -573,7 +583,7 @@
 
   let nextJuryId = 1;
   const state = {
-    student: '', studentGender: '', team: '', date: '', time: '',
+    student: '', studentGender: '', team: '', team2: '', date: '', time: '',
     defenseLang: '', placeType: 'amphi', placeName: '', building: '', visioLink: '',
     title: '', titleEn: '', abstract: '', abstractEn: '',
     jury: []
@@ -663,7 +673,11 @@
   function buildHtml(lang) {
     const en = lang === 'en';
     const name = state.student ? escapeHtml(state.student) : (en ? '[Student name]' : "[Nom de l'étudiant·e]");
-    const team = state.team ? TEAMS[state.team][lang] : (en ? '[team]' : '[équipe]');
+    const teamKeys = [state.team, state.team2].filter((k, i, arr) => k && arr.indexOf(k) === i);
+    const team = teamKeys.length
+      ? teamKeys.map(k => TEAMS[k][lang]).join(en ? ' and ' : ' et ')
+      : (en ? '[team]' : '[équipe]');
+    const twoTeams = teamKeys.length === 2;
     const titleRaw = en ? (state.titleEn || state.title) : state.title;
     const title = titleRaw ? escapeHtml(titleRaw) : (en ? '[thesis title]' : '[titre de la thèse]');
     const date = state.date ? formatDate(state.date, lang) : '[date]';
@@ -671,8 +685,8 @@
     const loc = locationClause(lang);
 
     const sentence = en
-      ? `${name}, PhD student in the ${team} team of the Navier laboratory, will defend ${possessiveEn(state.studentGender)} thesis “<em>${title}</em>” on ${date}${time}${loc}.`
-      : `${name}, ${studentRoleWord(state.studentGender)} au sein de l'équipe ${team} du laboratoire Navier, soutiendra sa thèse « <em>${title}</em> » le ${date}${time}${loc}.`;
+      ? `${name}, PhD student in the ${team} ${twoTeams ? 'teams' : 'team'} of the Navier laboratory, will defend ${possessiveEn(state.studentGender)} thesis “<em>${title}</em>” on ${date}${time}${loc}.`
+      : `${name}, ${studentRoleWord(state.studentGender)} au sein ${twoTeams ? 'des équipes' : "de l'équipe"} ${team} du laboratoire Navier, soutiendra sa thèse « <em>${title}</em> » le ${date}${time}${loc}.`;
 
     const LANG_SENTENCE = {
       fr: { fr: ' La soutenance se tiendra en français.', en: ' La soutenance se tiendra en anglais.' },
@@ -803,7 +817,7 @@
   }
 
   const FIELD_MAP = {
-    studentInput: 'student', studentGenderInput: 'studentGender', teamInput: 'team',
+    studentInput: 'student', studentGenderInput: 'studentGender', teamInput: 'team', team2Input: 'team2',
     dateInput: 'date', timeInput: 'time', defenseLangInput: 'defenseLang',
     placeTypeInput: 'placeType', placeNameInput: 'placeName', buildingInput: 'building', visioInput: 'visioLink',
     titleInput: 'title', titleEnInput: 'titleEn', abstractInput: 'abstract', abstractEnInput: 'abstractEn'
